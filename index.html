@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogiTrack – Login</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0F1623 0%,#1a2540 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:#fff;border-radius:20px;padding:40px 36px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.logo{text-align:center;margin-bottom:32px}
+.logo-icon{font-size:48px}
+.logo-title{font-size:24px;font-weight:800;color:#0F1623;margin-top:8px}
+.logo-sub{font-size:13px;color:#888;margin-top:4px}
+.form-group{margin-bottom:18px}
+.form-label{font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.form-input{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #E5E7EB;font-size:15px;outline:none;transition:border .2s}
+.form-input:focus{border-color:#4F7CF7}
+.btn-login{width:100%;padding:14px;border-radius:10px;border:none;background:#4F7CF7;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity .2s}
+.btn-login:hover{opacity:.9}
+.error{background:#FEE2E2;color:#EF4444;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;display:none}
+.loading{opacity:.6;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="login-box">
+  <div class="logo">
+    <div class="logo-icon">🚚</div>
+    <div class="logo-title">LogiTrack</div>
+    <div class="logo-sub">Sistema de Gestión de Reparto</div>
+  </div>
+  <div class="error" id="error">Email o contraseña incorrectos</div>
+  <div class="form-group">
+    <label class="form-label">Email</label>
+    <input class="form-input" type="email" id="email" placeholder="tu@email.com">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Contraseña</label>
+    <input class="form-input" type="password" id="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+  </div>
+  <button class="btn-login" id="btn-login" onclick="login()">Entrar</button>
+</div>
+<script>
+const SUPA_URL = 'https://pqnxhaqioywljftmlhjk.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzIINiIsInR5cCI6IkpXVCJ9.eyJpc3MlOiJzdXBhVnrzZSIsInJlZtT6InBxb';
+
+async function login(){
+  const email=document.getElementById('email').value.trim();
+  const pass=document.getElementById('password').value.trim();
+  if(!email||!pass)return;
+  const btn=document.getElementById('btn-login');
+  btn.textContent='Entrando...';btn.classList.add('loading');
+  document.getElementById('error').style.display='none';
+  try{
+    const res=await fetch(`${SUPA_URL}/rest/v1/repartidores?email=eq.${encodeURIComponent(email)}&password=eq.${encodeURIComponent(pass)}&activo=eq.true`,{
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
+    });
+    const data=await res.json();
+    if(data&&data.length>0){
+      const user=data[0];
+      localStorage.setItem('lt_user',JSON.stringify(user));
+      if(user.rol==='admin')window.location.href='/admin.html';
+      else window.location.href='/repartidor.html';
+    }else{
+      document.getElementById('error').style.display='block';
+      btn.textContent='Entrar';btn.classList.remove('loading');
+    }
+  }catch(e){
+    document.getElementById('error').style.display='block';
+    document.getElementById('error').textContent='Error de conexión. Intenta de nuevo.';
+    btn.textContent='Entrar';btn.classList.remove('loading');
+  }
+}
+// Si ya está logado, redirigir
+const u=localStorage.getItem('lt_user');
+if(u){const user=JSON.parse(u);if(user.rol==='admin')window.location.href='/admin.html';else window.location.href='/repartidor.html';}
+</script>
+</body>
+</html>

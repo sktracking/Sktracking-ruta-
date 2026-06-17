@@ -1,0 +1,7 @@
+{
+  "routes": [
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/admin", "dest": "/admin.html" },
+    { "src": "/repartidor", "dest": "/repartidor.html" }
+  ]
+}

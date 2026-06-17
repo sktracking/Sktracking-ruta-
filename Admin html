@@ -268,4 +268,4 @@ function renderPaquetes(){
   document.getElementById('pkg-count').textContent=`${filtered.length} resultado${filtered.length!==1?'s':''}`;
   document.getElementById('pkg-tbody').innerHTML=filtered.length?filtered.map(p=>`
     <tr>
-      <td style="font-family:monospace;font-weight:700;color:#4F7CF7;font-sizew
+      <td style="font-family:monospace;font-weight:700;color:#4F7CF7;font-size

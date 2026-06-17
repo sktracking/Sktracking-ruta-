@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogiTrack – Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F2F8;color:#111;min-height:100vh}
+#sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:#0F1623;display:flex;flex-direction:column;z-index:100}
+.logo{padding:24px 20px 20px;border-bottom:1px solid #1e2840}
+.logo-title{font-size:17px;font-weight:800;color:#fff}
+.logo-sub{font-size:11px;color:#6B7A99;margin-top:3px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:12px 20px;color:#7A8AAA;font-size:14px;cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+.nav-item:hover,.nav-item.active{color:#fff;border-left-color:#4F7CF7;background:rgba(79,124,247,.12);font-weight:700}
+.sidebar-bottom{padding:14px 20px;border-top:1px solid #1e2840;margin-top:auto}
+.user-info{font-size:12px;color:#6B7A99}
+.btn-logout{background:none;border:1px solid #EF4444;color:#EF4444;padding:6px 12px;border-radius:7px;cursor:pointer;font-size:12px;margin-top:8px;width:100%}
+#main{margin-left:220px;padding:28px 32px;min-height:100vh}
+.page{display:none}.page.active{display:block}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-title{font-size:22px;font-weight:800}
+.card{background:#fff;border-radius:14px;padding:22px;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:20px}
+.stat-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+.stat-card{background:#fff;border-radius:12px;padding:20px 22px;box-shadow:0 2px 12px rgba(0,0,0,.07);flex:1;min-width:130px;border-left:4px solid #4F7CF7}
+.stat-val{font-size:28px;font-weight:800}
+.stat-label{font-size:12px;color:#666;margin-top:2px}
+.stat-sub{font-size:11px;font-weight:700;margin-top:4px}
+.btn{padding:9px 18px;border-radius:9px;border:none;cursor:pointer;font-weight:700;font-size:13px}
+.btn:hover{opacity:.85}
+.btn-primary{background:#4F7CF7;color:#fff}
+.btn-ghost{background:#F0F2F8;color:#555;border:1px solid #E5E7EB}
+.btn-sm{padding:5px 12px;font-size:12px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+.filters input,.filters select{padding:8px 12px;border-radius:8px;border:1px solid #D1D5DB;font-size:13px;outline:none;background:#fff}
+.filters input{min-width:180px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 12px;font-size:11px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #E5E7EB}
+td{padding:12px 12px;font-size:13px;border-bottom:1px solid #F3F4F6;vertical-align:middle}
+tr:hover td{background:#FAFBFF}
+.table-wrap{overflow-x:auto}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block}
+.badge-pendiente{background:#FEF3C7;color:#F59E0B}
+.badge-en_ruta{background:#DBEAFE;color:#3B82F6}
+.badge-entregado{background:#D1FAE5;color:#10B981}
+.badge-fallido{background:#FEE2E2;color:#EF4444}
+.estado-select{padding:4px 8px;border-radius:7px;border:1px solid #E5E7EB;font-size:12px;font-weight:600;cursor:pointer;outline:none}
+.driver-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.driver-card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.07);border-top:4px solid #10B981}
+.driver-card.inactive{border-top-color:#D1D5DB}
+.progress-bar{height:6px;background:#F3F4F6;border-radius:10px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:10px;background:#10B981}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal-box{background:#fff;border-radius:16px;padding:28px;width:420px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.18);max-height:90vh;overflow-y:auto}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:20px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:5px}
+.form-input{width:100%;padding:9px 12px;border-radius:8px;border:1px solid #D1D5DB;font-size:14px;outline:none}
+.form-input:focus{border-color:#4F7CF7}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.rank-item{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+#toast{position:fixed;bottom:28px;right:28px;background:#111;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+#toast.show{opacity:1}
+#topbar{display:none;background:#0F1623;padding:12px 16px;position:sticky;top:0;z-index:99;align-items:center;gap:12px}
+#menu-btn{background:none;border:none;color:#fff;font-size:22px;cursor:pointer}
+.empty{text-align:center;color:#aaa;padding:40px;font-size:14px}
+@media(max-width:768px){#sidebar{transform:translateX(-220px);transition:transform .3s}#sidebar.open{transform:translateX(0)}#main{margin-left:0;padding:16px}#topbar{display:flex}.dash-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <button id="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+  <span style="color:#fff;font-weight:800;font-size:16px">🚚 LogiTrack Admin</span>
+</div>
+<div id="sidebar">
+  <div class="logo"><div class="logo-title">🚚 LogiTrack</div><div class="logo-sub">Panel Administrador</div></div>
+  <div style="margin-top:12px">
+    <div class="nav-item active" onclick="goTo('dashboard')"><span>📊</span> Dashboard</div>
+    <div class="nav-item" onclick="goTo('paquetes')"><span>📦</span> Paquetes</div>
+    <div class="nav-item" onclick="goTo('repartidores')"><span>🚚</span> Repartidores</div>
+    <div class="nav-item" onclick="goTo('ranking')"><span>🏆</span> Rendimiento</div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="user-info" id="admin-name">Administrador</div>
+    <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+  </div>
+</div>
+<div id="main">
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header"><div><div class="page-title">Dashboard de Operaciones</div><div style="font-size:13px;color:#888;margin-top:3px">Resumen en tiempo real</div></div><button class="btn btn-ghost btn-sm" onclick="loadAll()">🔄 Actualizar</button></div>
+    <div class="stat-row" id="stat-row"></div>
+    <div class="dash-grid">
+      <div class="card"><div style="font-weight:700;margin-bottom:16px;font-size:15px">🏆 Top Repartidores</div><div id="top-reps"></div></div>
+      <div class="card"><div style="font-weight:700;margin-bottom:16px;font-size:15px">📦 Estado de Paquetes</div><div id="estado-bars"></div></div>
+    </div>
+    <div class="card"><div style="font-weight:700;margin-bottom:14px;font-size:15px">🕐 Últimos paquetes</div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Destinatario</th><th>Repartidor</th><th>Estado</th><th>Fecha</th></tr></thead><tbody id="dash-tbody"></tbody></table></div></div>
+  </div>
+  <!-- PAQUETES -->
+  <div class="page" id="page-paquetes">
+    <div class="page-header"><div class="page-title">📦 Gestión de Paquetes</div><button class="btn btn-primary" onclick="openModal('modal-pkg')">+ Nuevo paquete</button></div>
+    <div class="filters">
+      <input type="text" id="search-pkg" placeholder="Buscar destinatario o ID…" oninput="renderPaquetes()">
+      <select id="filter-estado" onchange="renderPaquetes()"><option value="todos">Todos los estados</option><option value="pendiente">Pendiente</option><option value="en_ruta">En ruta</option><option value="entregado">Entregado</option><option value="fallido">Fallido</option></select>
+      <select id="filter-rep" onchange="renderPaquetes()"><option value="todos">Todos los repartidores</option></select>
+      <span id="pkg-count" style="font-size:13px;color:#888"></span>
+    </div>
+    <div class="card"><div class="table-wrap"><table><thead><tr><th>ID</th><th>Destinatario</th><th>Dirección</th><th>Kg</th><th>Repartidor</th><th>Estado</th><th>Fecha</th><th>Cambiar</th></tr></thead><tbody id="pkg-tbody"></tbody></table></div></div>
+  </div>
+  <!-- REPARTIDORES -->
+  <div class="page" id="page-repartidores">
+    <div class="page-header"><div class="page-title">🚚 Repartidores</div><button class="btn btn-primary" onclick="openModal('modal-driver')">+ Añadir repartidor</button></div>
+    <div class="driver-grid" id="driver-grid"></div>
+  </div>
+  <!-- RANKING -->
+  <div class="page" id="page-ranking">
+    <div class="page-header"><div class="page-title">🏆 Rendimiento</div></div>
+    <div class="card"><div class="table-wrap"><table><thead><tr><th>Pos.</th><th>Repartidor</th><th>Zona</th><th>Total</th><th>Entregados</th><th>En ruta</th><th>Fallidos</th><th>Kg</th><th>Tasa</th></tr></thead><tbody id="ranking-tbody"></tbody></table></div></div>
+  </div>
+</div>
+
+<!-- MODAL PAQUETE -->
+<div class="modal-bg" id="modal-pkg">
+  <div class="modal-box">
+    <div class="modal-title">📦 Nuevo Paquete</div>
+    <div class="form-group"><label class="form-label">Destinatario *</label><input class="form-input" id="pkg-dest" placeholder="Nombre completo"></div>
+    <div class="form-group"><label class="form-label">Dirección *</label><input class="form-input" id="pkg-dir" placeholder="Calle, número, ciudad"></div>
+    <div class="form-group"><label class="form-label">Peso (kg)</label><input class="form-input" id="pkg-peso" type="number" min="0.1" step="0.1" placeholder="1.0"></div>
+    <div class="form-group"><label class="form-label">Notas</label><input class="form-input" id="pkg-notas" placeholder="Opcional"></div>
+    <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" id="pkg-fecha" type="date"></div>
+    <div class="form-group"><label class="form-label">Asignar repartidor *</label><select class="form-input" id="pkg-rep"><option value="">Seleccionar…</option></select></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-pkg')">Cancelar</button><button class="btn btn-primary" onclick="addPaquete()">Crear</button></div>
+  </div>
+</div>
+
+<!-- MODAL REPARTIDOR -->
+<div class="modal-bg" id="modal-driver">
+  <div class="modal-box">
+    <div class="modal-title">🚚 Nuevo Repartidor</div>
+    <div class="form-group"><label class="form-label">Nombre *</label><input class="form-input" id="drv-nombre" placeholder="Nombre y apellidos"></div>
+    <div class="form-group"><label class="form-label">Email (para login) *</label><input class="form-input" id="drv-email" type="email" placeholder="repartidor@email.com"></div>
+    <div class="form-group"><label class="form-label">Contraseña *</label><input class="form-input" id="drv-pass" placeholder="Contraseña de acceso"></div>
+    <div class="form-group"><label class="form-label">Teléfono</label><input class="form-input" id="drv-tel" placeholder="600 000 000"></div>
+    <div class="form-group"><label class="form-label">Zona</label><input class="form-input" id="drv-zona" placeholder="Norte, Sur, Centro…"></div>
+    <div class="form-group"><label class="form-label">Matrícula</label><input class="form-input" id="drv-mat" placeholder="1234-ABC"></div>
+    <div class="form-group"><label class="form-label">Vehículo</label><select class="form-input" id="drv-veh"><option>Furgoneta</option><option>Moto</option><option>Coche</option><option>Bicicleta</option><option>Camión</option></select></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-driver')">Cancelar</button><button class="btn btn-primary" onclick="addDriver()">Añadir</button></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SUPA_URL='https://pqnxhaqioywljftmlhjk.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxbnhoYXFpb3l3bGpmdG1saGprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2ODY4MzEsImV4cCI6MjA5NzI2MjgzMX0._s6kU2NaUAtLZUMFCVXvxrB96oeufa_iOjr6R60-bOY';
+const H={'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+
+// Auth check
+const user=JSON.parse(localStorage.getItem('lt_user')||'null');
+if(!user||user.rol!=='admin'){window.location.href='/';}
+else{document.getElementById('admin-name').textContent=user.nombre;}
+
+let drivers=[];let packages=[];
+
+async function api(method,table,body,query=''){
+  const res=await fetch(`${SUPA_URL}/rest/v1/${table}${query}`,{method,headers:H,body:body?JSON.stringify(body):undefined});
+  if(!res.ok)throw new Error(await res.text());
+  return res.status===204?null:res.json();
+}
+
+async function loadAll(){
+  try{
+    [drivers,packages]=await Promise.all([
+      api('GET','repartidores','','?order=nombre'),
+      api('GET','paquetes','','?order=created_at.desc')
+    ]);
+    renderPage(currentPage);
+    toast('✅ Datos actualizados');
+  }catch(e){toast('❌ Error cargando datos');}
+}
+
+const ESTADOS={pendiente:{label:'Pendiente',color:'#F59E0B',bg:'#FEF3C7'},en_ruta:{label:'En ruta',color:'#3B82F6',bg:'#DBEAFE'},entregado:{label:'Entregado',color:'#10B981',bg:'#D1FAE5'},fallido:{label:'Fallido',color:'#EF4444',bg:'#FEE2E2'}};
+function badge(e){return `<span class="badge badge-${e}">${ESTADOS[e]?.label||e}</span>`;}
+function driverName(id){const d=drivers.find(x=>x.id===id);return d?d.nombre:'—';}
+function pkgStats(driverId){
+  const pkgs=packages.filter(p=>p.repartidor_id===driverId);
+  return{total:pkgs.length,entregados:pkgs.filter(p=>p.estado==='entregado').length,enRuta:pkgs.filter(p=>p.estado==='en_ruta').length,fallidos:pkgs.filter(p=>p.estado==='fallido').length,kg:pkgs.reduce((s,p)=>s+(p.peso||0),0).toFixed(1),tasa:pkgs.length?Math.round(pkgs.filter(p=>p.estado==='entregado').length/pkgs.length*100):0};
+}
+function h(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function logout(){localStorage.removeItem('lt_user');window.location.href='/';}
+function openModal(id){
+  if(id==='modal-pkg'){
+    document.getElementById('pkg-fecha').value=new Date().toISOString().slice(0,10);
+    const sel=document.getElementById('pkg-rep');
+    sel.innerHTML='<option value="">Seleccionar…</option>';
+    drivers.filter(d=>d.activo&&d.rol!=='admin').forEach(d=>sel.innerHTML+=`<option value="${d.id}">${h(d.nombre)} (${h(d.zona||'')})</option>`);
+  }
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
+
+let currentPage='dashboard';
+function goTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item')[['dashboard','paquetes','repartidores','ranking'].indexOf(page)].classList.add('active');
+  currentPage=page;renderPage(page);
+  if(window.innerWidth<=768)document.getElementById('sidebar').classList.remove('open');
+}
+function renderPage(p){
+  if(p==='dashboard')renderDashboard();
+  else if(p==='paquetes')renderPaquetes();
+  else if(p==='repartidores')renderDrivers();
+  else if(p==='ranking')renderRanking();
+}
+
+function renderDashboard(){
+  const total=packages.length;
+  const ent=packages.filter(p=>p.estado==='entregado').length;
+  const ruta=packages.filter(p=>p.estado==='en_ruta').length;
+  const pend=packages.filter(p=>p.estado==='pendiente').length;
+  const fall=packages.filter(p=>p.estado==='fallido').length;
+  const tasa=total?Math.round(ent/total*100):0;
+  document.getElementById('stat-row').innerHTML=`
+    <div class="stat-card" style="border-left-color:#4F7CF7"><div class="stat-val">${total}</div><div class="stat-label">Total paquetes</div></div>
+    <div class="stat-card" style="border-left-color:#10B981"><div class="stat-val" style="color:#10B981">${ent}</div><div class="stat-label">Entregados</div><div class="stat-sub" style="color:#10B981">${tasa}% éxito</div></div>
+    <div class="stat-card" style="border-left-color:#3B82F6"><div class="stat-val" style="color:#3B82F6">${ruta}</div><div class="stat-label">En ruta</div></div>
+    <div class="stat-card" style="border-left-color:#F59E0B"><div class="stat-val" style="color:#F59E0B">${pend}</div><div class="stat-label">Pendientes</div></div>
+    <div class="stat-card" style="border-left-color:#EF4444"><div class="stat-val" style="color:#EF4444">${fall}</div><div class="stat-label">Fallidos</div></div>
+  `;
+  const ranking=drivers.filter(d=>d.rol!=='admin').map(d=>({...d,...pkgStats(d.id)})).sort((a,b)=>b.entregados-a.entregados);
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('top-reps').innerHTML=ranking.slice(0,4).map((d,i)=>`
+    <div class="rank-item">
+      <div style="width:32px;height:32px;border-radius:50%;background:${['#F59E0B','#94A3B8','#CD7F32','#E5E7EB'][i]||'#E5E7EB'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0">${i<3?medals[i]:i+1}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:14px">${h(d.nombre)}</div><div style="font-size:12px;color:#888">${h(d.zona||'—')}</div></div>
+      <div style="text-align:right;margin-right:8px"><div style="font-weight:800;color:#10B981;font-size:16px">${d.entregados}</div><div style="font-size:11px;color:#aaa">entregados</div></div>
+    </div>
+  `).join('')||'<div class="empty">Sin repartidores</div>';
+  document.getElementById('estado-bars').innerHTML=Object.entries(ESTADOS).map(([k,e])=>{
+    const cnt=packages.filter(p=>p.estado===k).length;
+    const pct=total?Math.round(cnt/total*100):0;
+    return `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600">${e.label}</span><span style="font-size:13px;color:#666">${cnt} (${pct}%)</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${e.color}"></div></div></div>`;
+  }).join('');
+  const last=[...packages].slice(0,6);
+  document.getElementById('dash-tbody').innerHTML=last.map(p=>`<tr><td style="font-family:monospace;font-weight:700;color:#4F7CF7;font-size:12px">${h(p.id)}</td><td>${h(p.destinatario)}</td><td>${h(driverName(p.repartidor_id))}</td><td>${badge(p.estado)}</td><td>${h(p.fecha)}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">Sin paquetes</td></tr>';
+}
+
+function renderPaquetes(){
+  const search=document.getElementById('search-pkg').value.toLowerCase();
+  const fEst=document.getElementById('filter-estado').value;
+  const fRep=document.getElementById('filter-rep').value;
+  const repSel=document.getElementById('filter-rep');
+  const cur=repSel.value;
+  repSel.innerHTML='<option value="todos">Todos los repartidores</option>';
+  drivers.filter(d=>d.rol!=='admin').forEach(d=>repSel.innerHTML+=`<option value="${d.id}"${d.id===cur?' selected':''}>${h(d.nombre)}</option>`);
+  const filtered=packages.filter(p=>{
+    const mE=fEst==='todos'||p.estado===fEst;
+    const mR=fRep==='todos'||p.repartidor_id===fRep;
+    const mS=!search||p.destinatario.toLowerCase().includes(search)||p.id.toLowerCase().includes(search);
+    return mE&&mR&&mS;
+  });
+  document.getElementById('pkg-count').textContent=`${filtered.length} resultado${filtered.length!==1?'s':''}`;
+  document.getElementById('pkg-tbody').innerHTML=filtered.length?filtered.map(p=>`
+    <tr>
+      <td style="font-family:monospace;font-weight:700;color:#4F7CF7;font-sizew
